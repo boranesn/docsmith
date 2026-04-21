@@ -1,328 +1,193 @@
-# market-pulse
+<div align="center">
 
-> An async, LLM-powered financial market intelligence CLI that aggregates multi-source data, detects anomalies, and generates analyst-grade reports — all from your terminal.
+# 📝 Docsmith
 
-```
-pulse report AAPL --depth full
-```
+**An autonomous multi-agent system that reads any codebase and generates production-quality documentation with zero human input.**
 
-```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  AAPL — Full Analysis Report          2024-01-15
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![LangGraph](https://img.shields.io/badge/Agentic-LangGraph-orange.svg)](https://python.langchain.com/v0.1/docs/langgraph/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-  Summary        Strong fundamentals with services
-                 segment accelerating. Hardware cycle
-                 headwinds offset by margin expansion.
-
-  Bull Case  ▸  Services revenue CAGR 15%+
-             ▸  India market penetration early innings
-             ▸  Vision Pro optionality
-
-  Bear Case  ▸  China regulatory + demand risk
-             ▸  Peak smartphone saturation
-             ▸  Valuation premium vs. growth rate
-
-  Key Risks  ⚠  Antitrust: App Store fee litigation
-             ⚠  Macro: Consumer discretionary pressure
-             ⚠  FX: Strong USD compresses int'l revenue
-
-  Target Range   $178 – $224   (current: $189.42)
-  RSI            58.4  ·  Bollinger: mid-band
-  Sentiment      0.71 / 1.0  (152 news sources)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-```
+</div>
 
 ---
 
-## Why
-
-Tracking a stock requires juggling price charts, SEC filings, news feeds, earnings transcripts, Reddit sentiment, and technical indicators across a dozen different tabs. `market-pulse` collapses all of it into a single terminal-native tool:
-
-- **5 data sources fetched concurrently** via Python 3.11+ `asyncio.TaskGroup`
-- **Structured AI analysis** via Anthropic Claude tool use — guaranteed JSON output, no prompt hacking
-- **Columnar analytics** with DuckDB + Polars — no database server required
-- **Rich terminal UI** with live dashboards, tables, and progress indicators
-- **Alert engine** with custom condition DSL and multi-channel notifications
-
----
-
-## Features
-
-| Command | Description |
-|---|---|
-| `pulse watch` | Live terminal dashboard — prices, sentiment, signals, auto-refreshing |
-| `pulse report` | Full AI-generated investment analysis (quick / standard / full depth) |
-| `pulse scan` | Scan a sector for active signals (RSI oversold, earnings catalyst, etc.) |
-| `pulse compare` | Side-by-side peer comparison — fundamentals, growth, technicals |
-| `pulse alert` | Set conditional alerts with a human-readable DSL |
+## 📖 Table of Contents
+- [🎯 Why Docsmith?](#-why-docsmith)
+- [✨ Key Features](#-key-features)
+- [🚀 Getting Started](#-getting-started)
+- [🛠️ Tech Stack](#️-tech-stack)
+- [🤖 Multi-Agent Architecture](#-multi-agent-architecture)
+- [🔍 Deep Dive: How It Works](#-deep-dive-how-it-works)
+- [📁 Repository Structure](#-repository-structure)
 
 ---
 
-## Data Sources
+## 🎯 Why Docsmith?
 
-Data is fetched from **5 sources simultaneously** using `asyncio.TaskGroup`. Optional sources fail gracefully — the pipeline continues with available data.
+Documentation is always out of date because writing and maintaining it is a painful, manual process. `docsmith` solves this by pointing at any Git repository and producing a complete documentation suite. It runs a pipeline of specialized AI agents, each responsible for a distinct layer of codebase understanding, ensuring your docs are always accurate, comprehensive, and perfectly formatted.
 
-| Source | Data | Library |
-|---|---|---|
-| Yahoo Finance | Price, OHLCV, fundamentals | `yfinance` |
-| Alpha Vantage | Technical indicators, earnings | REST API |
-| NewsAPI | News headlines for sentiment | REST API |
-| SEC EDGAR | Latest 10-K / 10-Q filings | REST API |
-| Reddit | Retail sentiment, mention count | `praw` |
+## ✨ Key Features
 
----
-
-## Analysis Engine
-
-**Technical** — SMA (20/50/200), EMA, RSI, MACD, Bollinger Bands, volume spike detection. Implemented as pure Polars expressions — no loops, vectorized operations.
-
-**Fundamental** — P/E, EV/EBITDA, revenue growth YoY, gross margin, free cash flow, simplified DCF estimate, EPS surprise tracking.
-
-**Sentiment** — VADER applied to news headlines weighted by source recency. Reddit mention velocity as a secondary signal. Blended into a single −1.0 to 1.0 score.
-
-**Anomaly Detection** — Z-score and IQR-based outlier detection on both price and volume. Flags abnormal moves for manual review.
-
-**Peer Comparison** — Relative strength vs. sector peers. Ranks the target stock across multiple metrics.
+- **Multi-Agent Orchestration:** Utilizes a directed graph of 6 specialized AI agents (Explorer, API Extractor, Architect, Guide Writer, Diagram Gen, Reviewer).
+- **Language-Agnostic Parsing:** Uses `tree-sitter` to parse ASTs across 40+ languages without executing the code.
+- **Semantic Code Search:** Leverages `chromadb` to create embeddings and retrieve context efficiently.
+- **Auto-Generated Diagrams:** Produces programmatic architecture and dependency diagrams using Mermaid.
+- **Incremental Updates (Watch Mode):** Monitors file changes and re-generates *only* the affected documentation pages in seconds.
+- **Coverage Reporting:** Calculates exactly what percentage of your public API is documented.
 
 ---
 
-## AI Layer
+## 🚀 Getting Started
 
-All AI-generated analysis uses **Claude's tool use API** — the model must call a structured tool with typed arguments rather than returning free-form text. This eliminates parsing fragility and guarantees a consistent output schema on every call.
+### Installation
 
-```python
-# Claude is forced to call generate_analysis() with typed arguments.
-# No text extraction. No regex. Schema validated by Pydantic v2.
-```
-
-The AI layer handles:
-- Investment analysis (bull/bear case, risks, price target range)
-- SEC filing summarization — 10-K / 10-Q condensed to key takeaways
-- News signal classification — identifies catalysts from headline clusters
-
----
-
-## Stack
-
-```
-Python 3.12+      Language
-uv                Package manager
-Pydantic v2       Data validation & settings
-DuckDB            Local analytical database (time-series, no server)
-Polars            Columnar data processing
-asyncio           Concurrent data fetching (TaskGroup)
-Anthropic         LLM analysis via Claude tool use
-Typer             CLI framework
-Rich              Terminal UI (tables, live dashboards, progress)
-APScheduler       Alert polling & watch mode scheduling
-diskcache         Persistent API response caching
-VADER             Rule-based sentiment scoring
-weasyprint        Markdown → PDF export
-Ruff              Linter
-mypy (strict)     Type checker
-pytest-asyncio    Async test runner
-respx             HTTP mocking for tests
-```
-
----
-
-## Requirements
-
-- Python 3.12+
-- [`uv`](https://docs.astral.sh/uv/getting-started/installation/) installed
-- API keys (see Configuration)
-
----
-
-## Installation
+*Note: docsmith is packaged using `uv`.*
 
 ```bash
-git clone https://github.com/boranesn/market-pulse.git
-cd market-pulse
+# Clone the repository
+git clone https://github.com/boranesn/docsmith.git
+cd docsmith
 
 # Install dependencies
 uv sync
+```
 
-# Copy and fill in your API keys
-cp .env.example .env
+### Usage Examples
+
+```bash
+# Generate docs for a local project
+docsmith run ./my-project --output ./docs
+
+# Generate docs directly from a GitHub URL
+docsmith run https://github.com/fastapi/fastapi --output ./fastapi-docs
+
+# Watch mode: Re-generate instantly on file changes
+docsmith watch ./my-project
+
+# Diff mode: Only document what changed in recent commits
+docsmith diff ./my-project --since HEAD~5
+
+# Serve generated docs via a local live-reloading dev server
+docsmith serve ./docs --port 8080
 ```
 
 ---
 
-## Configuration
+## 🛠️ Tech Stack
 
-```bash
-# .env
+| Layer | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Language** | Python 3.12+ | Core runtime environment. |
+| **AST Parsing** | `tree-sitter` | Language-agnostic AST extraction for 40+ languages. |
+| **Agent Orchestration** | `LangGraph` | Stateful multi-agent graph with cyclic workflows. |
+| **LLM Engine** | Anthropic Claude API | Handles long contexts for large files and precise tool usage. |
+| **Embeddings & Search** | `chromadb` | Semantic search over codebase semantic chunks. |
+| **File Watching** | `watchfiles` | Rust-backed, high-performance async file system events. |
+| **Diagrams** | `diagrams` + Mermaid | Programmatic architecture and flow visualizations. |
+| **CLI Framework** | `Typer` + `Rich` | Beautiful, robust terminal interfaces. |
+| **Validation** | `Pydantic v2` | Strict data structuring and typing. |
+| **HTTP Server** | `FastAPI` | Serving generated docs via a local dev server. |
 
-ANTHROPIC_API_KEY=sk-ant-...        # Required — Claude analysis
-ALPHA_VANTAGE_API_KEY=...           # Required — technical indicators
-NEWS_API_KEY=...                    # Optional — sentiment (falls back gracefully)
-REDDIT_CLIENT_ID=...                # Optional — Reddit sentiment
-REDDIT_CLIENT_SECRET=...
-REDDIT_USER_AGENT=market-pulse/1.0
+---
 
-# Alert notifications (optional)
-SLACK_WEBHOOK_URL=https://hooks.slack.com/...
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=you@example.com
-SMTP_PASSWORD=...
+## 🤖 Multi-Agent Architecture
+
+The `docsmith` pipeline isn't a simple linear chain; it is a **directed graph** with conditional routing and retry loops, ensuring high quality and consistency.
+
+```text
+                    ┌─────────────────────────────┐
+                    │         START               │
+                    └──────────────┬──────────────┘
+                                   │
+                    ┌──────────────▼──────────────┐
+                    │   Explorer Agent            │
+                    │   • Read repo structure     │
+                    │   • Detect lang/framework   │
+                    │   • Identify entry points   │
+                    └──────────────┬──────────────┘
+                                   │
+               ┌───────────────────┼───────────────────┐
+               │                   │                   │
+  ┌────────────▼──────┐  ┌─────────▼──────┐  ┌────────▼──────────┐
+  │ API Extractor     │  │ Architect      │  │ Diagram Gen       │
+  │ • Parse AST       │  │ • Map modules  │  │ • Component graph │
+  │ • Find public APIs│  │ • Infer roles  │  │ • Data flow       │
+  │ • Extract types   │  │ • Data flows   │  │ • Mermaid output  │
+  └────────────┬──────┘  └─────────┬──────┘  └────────┬──────────┘
+               │                   │                   │
+               └───────────────────┼───────────────────┘
+                                   │
+                    ┌──────────────▼──────────────┐
+                    │   Guide Writer Agent        │
+                    │   • README.md               │
+                    │   • Getting Started guide   │
+                    │   • API references          │
+                    └──────────────┬──────────────┘
+                                   │
+                    ┌──────────────▼──────────────┐
+                    │   Reviewer Agent            │
+                    │   • Consistency check       │
+                    │   • Accuracy validation     │
+                    │   • Coverage score          │
+                    │   [if quality < threshold]  │
+                    │   → route back to writer    │
+                    └──────────────┬──────────────┘
+                                   │
+                    ┌──────────────▼──────────────┐
+                    │         END                 │
+                    │   Write files to disk       │
+                    └─────────────────────────────┘
 ```
 
 ---
 
-## Usage
+## 🔍 Deep Dive: How It Works
 
-### Live Watch Dashboard
+### AST Parsing
 
-```bash
-uv run pulse watch AAPL MSFT NVDA
-uv run pulse watch TSLA --interval 30   # Refresh every 30 seconds
-```
+`tree-sitter` extracts structural context from source files without executing them.
 
-```
-┌──────────────────────────────────────────────────┐
-│  market-pulse  ·  Live Watch  ·  14:32:07        │
-├──────┬──────────┬─────────┬────────┬─────────────┤
-│ TICK │ PRICE    │ CHG     │ SENT   │ SIGNAL      │
-├──────┼──────────┼─────────┼────────┼─────────────┤
-│ AAPL │  189.42  │ +1.2%   │  0.71  │ RSI neutral │
-│ MSFT │  415.20  │ +0.3%   │  0.65  │ Above SMA50 │
-│ NVDA │  875.10  │ -0.4%   │  0.88  │ Vol spike ⚠ │
-└──────┴──────────┴─────────┴────────┴─────────────┘
-  Refreshing in 58s  ·  q to quit
-```
+- **Python:** Extracts functions, methods, classes, Pydantic models, and FastAPI route decorators.
+- **TypeScript:** Extracts interfaces, types, exported functions, and React component props.
 
-### Investment Report
+### Dependency Graphs
 
-```bash
-uv run pulse report AAPL                    # Standard depth
-uv run pulse report TSLA --depth full       # Full AI analysis
-uv run pulse report NVDA --format pdf       # Export as PDF
-uv run pulse report MSFT --format markdown  # Export as Markdown
-```
+The system builds a directed graph of module imports and renders it directly as Mermaid syntax. Nodes are intelligently sized based on fan-in (number of dependents), visually highlighting the most critical modules in your codebase.
 
-### Sector Scan
+### Documentation Coverage
 
-```bash
-uv run pulse scan --sector semiconductor --signal "rsi_oversold"
-uv run pulse scan --sector fintech --signal "earnings_beat"
-```
+`docsmith` doesn't just write docs; it tells you what's missing. After every run, you receive a detailed CLI report:
 
-### Peer Comparison
+```text
+Documentation Coverage: 74.3%  ████████████████░░░░░░
 
-```bash
-uv run pulse compare AMZN GOOG META --metric revenue_growth
-uv run pulse compare AAPL MSFT --years 3
-```
+  Fully documented:   43 symbols
+  Missing docs:       15 symbols
 
-### Alerts
-
-```bash
-# Add an alert
-uv run pulse alert add NVDA \
-  --condition "price > 200-day-MA" \
-  --notify slack
-
-# Condition DSL examples
-"price > 900"
-"rsi < 30"
-"sentiment > 0.8"
-"price > 200-day-MA"
-"volume > 2x-avg"
-
-# List active alerts
-uv run pulse alert list
-
-# Remove an alert
-uv run pulse alert remove <id>
-
-# Start alert polling daemon
-uv run pulse alert daemon
+  Lowest coverage:
+    src/auth/jwt.py        — 20%  (4 of 5 functions undocumented)
+    src/db/migrations.py   — 33%  (2 of 3 undocumented)
 ```
 
 ---
 
-## Architecture
+## 📁 Repository Structure
 
-```
-                        ┌─────────────────────────┐
-                        │       CLI (Typer)        │
-                        └────────────┬────────────┘
-                                     │
-                        ┌────────────▼────────────┐
-                        │    Data Aggregator      │
-                        │   asyncio.TaskGroup     │
-                        └──┬──┬──┬──┬──┬──────────┘
-                           │  │  │  │  │
-              ┌────────────┘  │  │  │  └────────────┐
-              │               │  │  │               │
-           Yahoo           Alpha  News   SEC       Reddit
-          Finance         Vantage  API  EDGAR       PRAW
-              │               │  │  │               │
-              └───────────────┴──┴──┴───────────────┘
-                                     │
-                        ┌────────────▼────────────┐
-                        │      Normalizer          │
-                        │   → MarketSnapshot       │
-                        └────────────┬────────────┘
-                                     │
-               ┌──────────┬──────────┼──────────┬──────────┐
-               │          │          │          │          │
-          Technical  Fundamental Sentiment  Anomaly    Peer
-          Analysis    Analysis   Scoring   Detection  Compare
-               │          │          │          │          │
-               └──────────┴──────────┼──────────┴──────────┘
-                                     │
-                        ┌────────────▼────────────┐
-                        │     Claude Tool Use      │
-                        │  Structured AI Analysis  │
-                        └────────────┬────────────┘
-                                     │
-                     ┌───────────────┼───────────────┐
-                     │               │               │
-                  DuckDB          Export          Alerts
-               (time-series)   MD / PDF / JSON   Engine
-```
-
----
-
-## Project Structure
-
-```
-market-pulse/
-├── src/market_pulse/
-│   ├── cli/            # Typer commands (watch, report, scan, compare, alert)
-│   ├── data/
-│   │   ├── sources/    # yahoo.py, alphaV.py, newsapi.py, sec.py, reddit.py
-│   │   ├── aggregator.py   # TaskGroup concurrent fan-out
-│   │   └── normalizer.py   # → MarketSnapshot
-│   ├── analysis/       # technical, fundamental, sentiment, anomaly, comparison
-│   ├── ai/             # analyst.py, summarizer.py, scanner.py, prompts.py
-│   ├── alerts/         # engine.py, conditions.py, notifiers/
-│   ├── storage/        # DuckDB, migrations, diskcache
-│   ├── export/         # markdown, json, pdf
-│   └── models/         # Pydantic v2 models
-└── tests/              # 11 tests — pytest-asyncio, respx HTTP mocking
-```
-
----
-
-## Development
-
-```bash
-# Run tests
-uv run pytest
-
-# Type check
-uv run mypy src/
-
-# Lint
-uv run ruff check src/
-
-# Format
-uv run ruff format src/
+```text
+docsmith/
+├── src/
+│   └── docsmith/
+│       ├── cli/                # Typer commands (run, watch, diff, serve)
+│       ├── ingestion/          # File walking, Tree-sitter parsing, ChromaDB embeddings
+│       ├── agents/             # LangGraph state definitions and 6 distinct agents
+│       ├── analysis/           # Dependency graphs, complexity scoring, coverage calculation
+│       ├── renderers/          # Markdown formatting, Mermaid generation, FastAPI server
+│       ├── storage/            # ChromaDB management and run state persistence
+│       ├── models/             # Pydantic v2 schemas (CodeChunk, ParsedFunction, etc.)
+│       └── config.py           # Pydantic BaseSettings for the app
+├── pyproject.toml
+└── README.md
 ```
 
 ---
@@ -330,3 +195,10 @@ uv run ruff format src/
 ## License
 
 MIT
+
+---
+
+
+<div align="center">
+  <i>Built with logic, agents, and coffee. ☕</i>
+</div>
